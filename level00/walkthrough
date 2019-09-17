@@ -1,0 +1,7 @@
+We can see a binary called level0 in the home.
+
+After an execution of it, we can see a segfault (core dumped)
+
+./level0 a
+./level0 a a a
+-> Prints "No !"
