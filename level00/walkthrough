@@ -1,7 +1,24 @@
 We can see a binary called level0 in the home.
 
 After an execution of it, we can see a segfault (core dumped)
+./level0
+-> segfault
 
 ./level0 a
 ./level0 a a a
 -> Prints "No !"
+
+After have been a GDB on this level0, we can see than in the 
+first instructions there's a atoi.
+Probably the reason of the segfault.
+We can also see than the next line is comparing the result of the
+atoi, with 0x1A7 (423).
+
+After have tried : ./level0 423 
+We can see than a sh has been executed.
+It's after that we tried to navigate to level1 and read the .pass
+Which works. 
+
+.pass1 :
+1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
+

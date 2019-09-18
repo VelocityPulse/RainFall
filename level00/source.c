@@ -27,7 +27,5 @@ int main(int argc, char **argv)
 		fwrite(nope, 0x1, 0x5, stderr);
 	}
 
-	//cmp
-
 	return 0;
 }
