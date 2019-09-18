@@ -23,9 +23,6 @@
 	   0x08048f01 <+65>:	call   0x8054670 <geteuid>
 	   0x08048f06 <+70>:	mov    DWORD PTR [esp+0x18],eax
 
-	   // esp + 0x1c = getegid
-	   // esp + 0x18 = geteuid
-
 	   0x08048f0a <+74>:	mov    eax,DWORD PTR [esp+0x1c]
 	   0x08048f0e <+78>:	mov    DWORD PTR [esp+0x8],eax 
 	   0x08048f12 <+82>:	mov    eax,DWORD PTR [esp+0x1c]
