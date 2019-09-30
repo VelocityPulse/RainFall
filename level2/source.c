@@ -5,8 +5,7 @@ void p()
 	char str[0x40];
 
 	fflush(stdin);
-	gets(str);
-
+	system("/bin/sh");
 }
 
 int main()
