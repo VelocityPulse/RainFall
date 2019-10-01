@@ -10,6 +10,8 @@ void run()
 
 int main(int argc, char **argv)
 {
-	gets(&argv[0][16]);
+	char str[76];
+
+	gets(str);
 	return 0;
 }
