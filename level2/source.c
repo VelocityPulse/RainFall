@@ -1,6 +1,5 @@
 #include <stdio.h>
-
-int main();
+#include <stdlib.h>
 
 void p()
 {
@@ -8,36 +7,24 @@ void p()
 
 	fflush(stdin);
 
-//	gets(str);
-
-	int ebp;
-	//	asm volatile("1: lea 1b(%%rbp), %0;": "=a"(ebp));
-
-	int *regVal;
-	asm("movl %%ebp, %0" : "=r"(regVal) :);
-
-	//	register int *e asm("rbp");
-
-	int e;
-	//	asm("movl %%rbp,%0" : "=r"(e));
-	//	asm("movl %%esp, %0" : "=r" (e));
-
-	printf("volatile ebp     : %#x\n", *regVal);
-	printf("volatipe ebp+0x4 : %#x\n", regVal[1]);
-	printf("function address : %#x\n", main);
+	gets(str);
 
 
-	/*	if ((eax & 0xb0000000) == 0xb0000000)
-		{
-	// printf
-	// exit
+	int *ebp;
+	asm("movl %%ebp, %0" : "=r"(ebp) :);
+
+	int tmp = ebp[1];
+	if ((tmp & 0xb0000000) == 0xb0000000)
+	{
+		printf("(%p)\n", tmp);
+		exit(1);
 	}
 	else
 	{
-	// puts
-	// strdup
+		// puts
+		// strdup
 	}
-	*/
+
 }
 
 int main()
