@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 
 void p()
 {
@@ -9,11 +10,8 @@ void p()
 
 	gets(str);
 
+	int tmp = __builtin_return_address(0);
 
-	int *ebp;
-	asm("movl %%ebp, %0" : "=r"(ebp) :);
-
-	int tmp = ebp[1];
 	if ((tmp & 0xb0000000) == 0xb0000000)
 	{
 		printf("(%p)\n", tmp);
@@ -21,8 +19,8 @@ void p()
 	}
 	else
 	{
-		// puts
-		// strdup
+		puts(str);
+		strdup(str);
 	}
 
 }

