@@ -5,7 +5,7 @@ With that informations, we cannot perfom a bufferoverflow.
 
 In the other hand, we can see that, as the level3 program, after the printf,
 there's a variable comparaison but not with a little value like 0x40, but
-0x01025544.
+0x01025544. (saved at 0x08049810)
 
 Equal to 16 930 116 in decimal.
 
