@@ -1,0 +1,38 @@
+This program process some informations given in the standard entry.
+
+In few words, there's no attack to proceed, just disas this program and convert it in C
+to see that if you fulfill the conditions, you get the /bin/sh execution.
+
+We can see at the end of the program, that if we put "login", there's some 
+conditions check  beforea system("/bin/sh") called.
+
+The condition is that 0x08049aac + 0x20(32) does not be zero.
+However, we can see that 0x08049aac is a variable called "auth" which is set at 0x0.
+
+If we type "auth " we enter in a section which call malloc(4), where the right part of "auth " will be fill in the malloc. Then the malloc will be saved in 0x08049aac
+right part or auth.
+
+To succeed the level, it would have been easy to put 0x20(32) char after "auth ".
+Unfortunately the malloc operate only if the right part of "auth " is less than 0x1e(30)
+
+To feel 0x08049aac + 0x20, we must use the "service" malloc.
+By typing "service", a strdup will be called and will strdup from the 7th char
+of the service string.
+
+When we call "auth " then "service", we can see that the printf prints us the both malloc
+addresses. And by substract them we can see than they are espaced of 16 bytes, and that
+if we write first "auth " then "service", the "auth" malloc address will be before the "service"
+malloc address.
+
+
+[ HEAP --------------------------------------------------------------- ]
+      |                |                     |
+ (auth addr)     (service addr)      (auth addr + 0x20)
+
+
+We just have to write :
+"auth "
+"serviceeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+"login"
+
+Then we get the /bash/sh.
