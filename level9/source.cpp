@@ -11,6 +11,8 @@ class N {
 		this->x = a;
 	}
 
+	~N() {};
+
 	void setAnnotation(char *str) {
 		memcpy(this->str, str, strlen(str));
 	}
