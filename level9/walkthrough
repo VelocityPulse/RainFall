@@ -1,0 +1,52 @@
+After have re-write the program in C, we can see that we have a class N
+which contains two virtuals operators, a constructor, a int and a char[64],
+And finally a method called setAnnotation(char *).
+
+The presence of virtuals operators invovle a Virtual Table.
+That's what we see as the first value of an object pointer.
+Next there's the int, and the 64 bytes of the char[64]
+
+On the runtime, the program will start to construct two N objects.
+Then the setAnnoation() is called to fill the char[64] of the first object, with
+the argv[1] as content.
+
+And later in the program, some operators are called, using the virtuals methods.
+
+We can use that breach security, overwriting the the address of
+the Virtual Table, stored in the second object, which is stored some
+bytes after the first one, in the heap.
+
+To call operators, the ASM, will unreference the value stored in the vtable of
+the right hand side, and use the value to call the virtual operator.
+It will also pass as parameter the light hand side.
+(words "right" and "left" are relative to if we write a+b or b+a)
+
+In order to realize our exploit, we have to write in argv[1], a padding
+which will buffer overflow until the address of the second vtable, and which will
+point to a place of our buffer, containing the address of system.
+
+We will also have to add at the end of our exploit the string of the system() call.
+
+Our exploit will look like :
+(sys_address) + (padding until second vTable) + (address of sys_address) +
+(system parameter)
+
+Python :
+print "\xb7\xd8\x60\x60"[::-1] + ("A" * 104) + "\x08\x04\xA0\x0C"[::-1] + "/bin/sh"
+
+At this point, if we try to execute the program, we can notice that it doesnt work.
+It's because actually the parameter passed to system isn't only "/bin/sh".
+It also contains the address of our sys_address location.
+To avoid that error, we just have to add "\n" in our system parameter, 
+in order to execute the address as a string, make it fail, and make system execute
+the other command separed by the "\n".
+
+Our new system string param now looks like : "\n/bin/sh"
+
+Python :
+print "\xb7\xd8\x60\x60"[::-1] + ("A" * 104) + "\x08\x04\xA0\x0C"[::-1] + "\n/bin/sh"
+
+pass :
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
+
+(note the next level is bonus0, not level10)
