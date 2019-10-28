@@ -1,0 +1,23 @@
+This one expects two args
+
+The first argument (argv[1]) will be used as a parameter for a call to atoi(),
+which returns an int.
+If the returned int is above 9, the program will exit.
+That int is multiplied by 4,
+and then used as a size parameter for a memcpy call from argv[2] to the 40 bytes buffer.
+
+The program then compares the value of i.
+If the value of i is 0x574f4c46, the program opens a shell for us
+and we can access the .pass
+
+That value is right behind the buffer on the stack,
+so we could write on it with an overflow through memcpy
+However, because of the maximum '9' set to the value,
+even when multpiled by 9 it would not be long enough to overwrite i;
+
+But, the multiplication that happens before the memcpy
+allows us to overflow the value and obtain the right size (44)
+for the memcpy overflow to work.
+
+-2147483637 is the value to input for argv[1];
+for argv[2], a 44 bytes string composed of a 40 bytes pad and the wanted value at the end
