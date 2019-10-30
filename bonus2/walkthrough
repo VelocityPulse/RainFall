@@ -1,0 +1,28 @@
+bonus2 takes two arguments.
+The first 40 bytes of argv[1] will be strncat in an 80 bytes sized buffer
+The first 32 bytes of argv[2] will be strncat in that same buffer with an offset of 40
+
+The last 4 bytes of that buffer are used to store the address of a string
+returned by a call to getenv() with "LANG" as a parameter
+The first two characters of that string are compared with memcmp and based on it,
+a certain value will be set to a global variable <language>.
+If it's "fi", language is set to 1
+If it's "nl", language is set to 2
+In other case, (or if getenv failed to return a good pointer), language stays at 0
+
+The first 76 bytes of the buffer are then copied in a buffer 80 bytes lower (main subs 160 to esp)
+
+At this point, an other function, greetuser() is called.
+It has a 72 bytes buffer
+The function will look at the <language> variable and based on its value will add a greeting
+for the user ("Hello " if == 0, "Hyvää päivää" if == 1, "Goedemiddag! " if == 2)
+in the 72 bytes buffer, and then strcat the 76 bytes buffer from main() right behind.
+From now on it appears clear that we can write on the saved eip in the stack,
+but we fall short of two bytes to write it completely with the default "Hello ".
+So by exporting LANG=nl (could work with fi too), we extend the lenght of the overflow
+
+The rest of the exploit is very similar to bonus0. We write on saved eip the address of
+the start of the buffer in main() in which we put a shellcode to push
+"/bin/sh" from libc, a returning eip (anything will do) and an eip set to the start of system()
+Add a ret instruction to jump right on system() with the proper argument which
+will open a shell to access /home/user/bonus3/.pass as bonus3
