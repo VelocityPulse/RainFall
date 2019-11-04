@@ -1,0 +1,14 @@
+The last bonus takes a single argument (will exit if argc != 2)
+
+It fopens "/home/user/end/.pass", freads the first 66 bytes and adds a '\0' at the end
+argv[1] is passed as a parameter for a call to atoi().
+The returned value is used as an offset to the read string to set it to 0
+The program then compares argv[1] and the read string.
+If both are identical, a shell is opened.
+
+As it turns out there is one simple way to have two equal strings
+for the strcmp() call.
+
+If you input "" into argv[1], a null-terminated empty string will be input.
+This will cause atoi to return 0, thus set 0 to the first character of the fread string.
+As a result, strcmp will compare two null-terminated empty strings and open the gates.

